@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <p>
+        1. Trykk "Nytt polygon" og klikk i ruta for å legge inn punkter.<br>
+        2. Trykk "Ferdig" (eller Enter) for å lukke polygonet. Backspace angrer siste punkt.<br>
+        3. Velg Translasjon, Skalering eller Rotasjon, og dra med musa i ruta.<br>
+        <b>Keybinds:</b><br>
+        Enter     = lukk polygonet (samme som "Ferdig")<br>
+        Space     = Nytt polygon<br>
+        Backspace = angre siste punkt<br>
+        T         = velg translasjon<br>
+        S         = velg skalering<br>
+        R         = velg rotasjon
+    </p>
+
+    <button onclick="newPolygon()">Nytt polygon</button>
+    <button onclick="finish()">Ferdig</button>
+    <button onclick="setMode('translate')">Translasjon</button>
+    <button onclick="setMode('scale')">Skalering</button>
+    <button onclick="setMode('rotate')">Rotasjon</button>
+    <span id="modeText">Modus: Translasjon</span>
+    <br><br>
+
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+
+    <script>
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        var points = [];
+        var isClosed = false;
+
+        var mode = "translate";
+        var isDragging = false;
+        var lastX = 0, lastY = 0;
+        var centerX = 0, centerY = 0;
+
+        function getMousePos(e) {
+            var rect = c.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        c.addEventListener("click", function (e) {
+            if (isClosed) {
+                return;
+            }
+            var m = getMousePos(e);
+            points.push({ x: m.x, y: m.y });
+            draw();
+        });
+
+        c.addEventListener("mousedown", function (e) {
+            if (!isClosed) {
+                return;
+            }
+            var m = getMousePos(e);
+            isDragging = true;
+            lastX = m.x;
+            lastY = m.y;
+            var center = getCenter();
+            centerX = center.x;
+            centerY = center.y;
+        });
+
+        c.addEventListener("mousemove", function (e) {
+            if (!isDragging) {
+                return;
+            }
+            var m = getMousePos(e);
+
+            if (mode == "translate") {
+                translate(m.x - lastX, m.y - lastY);
+            } else if (mode == "scale") {
+                var oldDist = Math.sqrt((lastX - centerX) ** 2 + (lastY - centerY) ** 2);
+                var newDist = Math.sqrt((m.x - centerX) ** 2 + (m.y - centerY) ** 2);
+                if (oldDist > 0) {
+                    scale(newDist / oldDist, centerX, centerY);
+                }
+            } else if (mode == "rotate") {
+                var oldAngle = Math.atan2(lastY - centerY, lastX - centerX);
+                var newAngle = Math.atan2(m.y - centerY, m.x - centerX);
+                rotate(newAngle - oldAngle, centerX, centerY);
+            }
+
+            lastX = m.x;
+            lastY = m.y;
+            draw();
+        });
+
+        window.addEventListener("mouseup", function () {
+            isDragging = false;
+        });
+
+        // Tastatur:
+        // Enter     = lukk polygonet (samme som "Ferdig")
+        // Space     = nytt polygon (samme som "Nytt polygon")
+        // Backspace = angre siste punkt
+        // T         = velg translasjon
+        // S         = velg skalering
+        // R         = velg rotasjon
+        document.addEventListener("keydown", function (e) {
+            var key = e.key.toLowerCase();
+            if (key == "enter") {
+                e.preventDefault();
+                finish();
+            } else if (key == " ") {
+                e.preventDefault();
+                newPolygon();
+            } else if (key == "backspace" && !isClosed) {
+                points.pop();
+                draw();
+            } else if (key == "t") {
+                setMode("translate");
+            } else if (key == "s") {
+                setMode("scale");
+            } else if (key == "r") {
+                setMode("rotate");
+            }
+        });
+
+        function setMode(newMode) {
+            mode = newMode;
+            var names = { translate: "Translasjon", scale: "Skalering", rotate: "Rotasjon" };
+            document.getElementById("modeText").textContent = "Modus: " + names[mode];
+        }
+
+        function getCenter() {
+            var sumX = 0, sumY = 0;
+            for (var i = 0; i < points.length; i++) {
+                sumX += points[i].x;
+                sumY += points[i].y;
+            }
+            return { x: sumX / points.length, y: sumY / points.length };
+        }
+
+        function translate(dx, dy) {
+            for (var i = 0; i < points.length; i++) {
+                points[i].x = points[i].x + dx;
+                points[i].y = points[i].y + dy;
+            }
+        }
+
+        function scale(factor, cx, cy) {
+            for (var i = 0; i < points.length; i++) {
+                points[i].x = cx + (points[i].x - cx) * factor;
+                points[i].y = cy + (points[i].y - cy) * factor;
+            }
+        }
+
+        function rotate(angle, cx, cy) {
+            var cos = Math.cos(angle);
+            var sin = Math.sin(angle);
+            for (var i = 0; i < points.length; i++) {
+                var x = points[i].x - cx;
+                var y = points[i].y - cy;
+                points[i].x = cx + x * cos - y * sin;
+                points[i].y = cy + x * sin + y * cos;
+            }
+        }
+
+        function newPolygon() {
+            points = [];
+            isClosed = false;
+            draw();
+        }
+
+        function finish() {
+            if (points.length >= 3) {
+                isClosed = true;
+                draw();
+            } else {
+                alert("Et polygon må ha minst 3 punkter.");
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            if (points.length == 0) {
+                return;
+            }
+
+            ctx.strokeStyle = "black";
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (var i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            if (isClosed) {
+                ctx.closePath();
+            }
+            ctx.stroke();
+
+            if (!isClosed) {
+                ctx.fillStyle = "black";
+                for (var j = 0; j < points.length; j++) {
+                    ctx.beginPath();
+                    ctx.arc(points[j].x, points[j].y, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+        }
+
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Laboppgave 9</title>
+    <script type="text/javascript" src="./libs/three.js"></script>
+    <script type="text/javascript" src="./libs/dat.gui.js"></script>
+    <script type="text/javascript" src="./libs/OrbitControls.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="WebGL-output"></div>
+
+    <script type="text/javascript">
+      function createPyramid(size, height, color) {
+        var s = size / 2;
+
+        var A = [-s, 0, -s];
+        var B = [s, 0, -s];
+        var C = [s, 0, s];
+        var D = [-s, 0, s];
+        var top = [0, height, 0];
+
+        var positions = new Float32Array([
+            ...D, ...C, ...top,
+            ...C, ...B, ...top,
+            ...B, ...A, ...top,
+            ...A, ...D, ...top,
+            ...A, ...B, ...C,
+            ...A, ...C, ...D
+        ]);
+
+        var geometry = new THREE.BufferGeometry();
+        var attribute = new THREE.BufferAttribute(positions, 3);
+        if (geometry.setAttribute) {
+          geometry.setAttribute("position", attribute);
+        } else {
+          geometry.addAttribute("position", attribute);
+        }
+        geometry.computeVertexNormals();
+
+        var material = new THREE.MeshLambertMaterial({ color: color });
+        return new THREE.Mesh(geometry, material);
+      }
+
+      function rotateOnWorld(object, axis, angle) {
+        if (object.rotateOnWorldAxis) {
+          object.rotateOnWorldAxis(axis, angle);
+          return;
+        }
+        var q = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+        object.quaternion.multiplyQuaternions(q, object.quaternion);
+      }
+
+      function init() {
+        // Scene, camera and renderer
+        var scene = new THREE.Scene();
+
+        var camera = new THREE.PerspectiveCamera(
+          45,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000,
+        );
+        camera.position.set(-30, 40, 30);
+        camera.lookAt(scene.position);
+
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(new THREE.Color(0xffffff));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document
+          .getElementById("WebGL-output")
+          .appendChild(renderer.domElement);
+
+        var orbitControls = new THREE.OrbitControls(
+          camera,
+          renderer.domElement,
+        );
+
+        scene.add(new THREE.AxisHelper(20));
+
+        // Controls (dat.gui)
+        var controls = {
+          rotationSpeedX: 0.5,
+          rotationSpeedY: 1.0,
+          rotationSpeedZ: 0.3,
+          color: "#00ff00",
+        };
+
+        // Pyramid
+        var pyramid = createPyramid(10, 12, controls.color);
+        scene.add(pyramid);
+
+        var ambientLight = new THREE.AmbientLight(0x333333);
+        scene.add(ambientLight);
+
+        var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(-20, 40, 30);
+        scene.add(directionalLight);
+
+        var gui = new dat.GUI();
+        gui.add(controls, "rotationSpeedX", -5, 5);
+        gui.add(controls, "rotationSpeedY", -5, 5);
+        gui.add(controls, "rotationSpeedZ", -5, 5);
+        gui.addColor(controls, "color").onChange(function (value) {
+          pyramid.material.color.set(value);
+        });
+
+        // Animation
+        var worldXAxis = new THREE.Vector3(1, 0, 0);
+        var worldYAxis = new THREE.Vector3(0, 1, 0);
+        var worldZAxis = new THREE.Vector3(0, 0, 1);
+        var clock = new THREE.Clock();
+
+        function animate() {
+          var deltaTime = clock.getDelta();
+
+          rotateOnWorld(
+            pyramid,
+            worldXAxis,
+            controls.rotationSpeedX * deltaTime,
+          );
+          rotateOnWorld(
+            pyramid,
+            worldYAxis,
+            controls.rotationSpeedY * deltaTime,
+          );
+          rotateOnWorld(
+            pyramid,
+            worldZAxis,
+            controls.rotationSpeedZ * deltaTime,
+          );
+
+          orbitControls.update();
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

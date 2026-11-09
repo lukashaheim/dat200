@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Laboppgave 10</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="./libs/dat.gui.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <div id="WebGL-output"></div>
+
+    <script>
+      function init() {
+        var scene = new THREE.Scene();
+
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(-15, 12, 20);
+        camera.lookAt(0, 6, 0);
+
+        var renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setClearColor(new THREE.Color(0xffffff));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        var orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+        orbitControls.target.set(0, 6, 0);
+        scene.add(new THREE.AxesHelper(20));
+
+        scene.add(new THREE.AmbientLight(0x888888));
+        var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(-20, 40, 30);
+        scene.add(directionalLight);
+
+        // Hastighet styres med slider
+        var controls = { speed: 1.5 };
+        var gui = new dat.GUI();
+        gui.add(controls, "speed", -10, 10).name("Hastighet");
+
+        var nav = new THREE.Group();
+        nav.position.set(0, 8, 0.5);
+
+        new THREE.GLTFLoader().load("./models/vindmolle.glb", function (gltf) {
+          var fundament = gltf.scene.getObjectByName("fundament");
+          var blad = gltf.scene.getObjectByName("blad");
+          scene.add(fundament);
+
+          for (var i = 0; i < 3; i++) {
+            var holder = new THREE.Group();
+            holder.rotation.z = i * (Math.PI * 2) / 3; // 120 grader
+
+            var kopi = blad.clone();
+            kopi.rotation.x = Math.PI / 2; // 90 grader
+            holder.add(kopi);
+
+            nav.add(holder);
+          }
+          scene.add(nav);
+        });
+
+        var clock = new THREE.Clock();
+
+        function animate() {
+          var deltaTime = clock.getDelta();
+          nav.rotation.z += controls.speed * deltaTime;
+
+          orbitControls.update();
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

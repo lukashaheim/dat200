@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+    <canvas id="myCanvas" width="400" height="400" style="border:1px solid #d3d3d3;"></canvas>
+
+    <script>
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        ctx.fillStyle = "yellow";
+        ctx.fillRect(0, 0, c.width, c.height);
+
+        var kvadratStorrelse = 200;
+        var kvadratX = (c.width - kvadratStorrelse) / 2;
+        var kvadratY = (c.height - kvadratStorrelse) / 2;
+
+        ctx.fillStyle = "red";
+        ctx.fillRect(kvadratX, kvadratY, kvadratStorrelse, kvadratStorrelse);
+
+        var midtX = c.width / 2;
+        var midtY = c.height / 2;
+
+        ctx.strokeStyle = "black";
+
+        ctx.beginPath();
+        ctx.moveTo(kvadratX, midtY + 1);
+        ctx.lineTo(midtX, midtY);
+        ctx.stroke();
+
+             
+        ctx.beginPath();
+        ctx.moveTo(midtX, midtY + 1);
+        ctx.lineTo(kvadratX + kvadratStorrelse, midtY + 0.5);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(midtX, midtY, 5, 0, 2 * Math.PI);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "black";
+        ctx.stroke(); 
+
+        ctx.fill();
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+    </script>
+
+</body>
+</html>

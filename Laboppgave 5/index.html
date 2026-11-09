@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <p>
+        1. Trykk "Nytt polygon" og klikk i ruta for å legge inn punkter.<br>
+        2. Trykk "Ferdig" (eller Enter) for å lukke polygonet. <br>
+        Backspace angrer siste punkt.
+    </p>
+
+    <button onclick="newPolygon()">Nytt polygon</button>
+    <button onclick="finish()">Ferdig</button>
+    <br><br>
+
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+
+    <script>
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        var points = [];
+        var isClosed = false;
+
+        c.addEventListener("click", function (e) {
+            if (isClosed) {
+                return;
+            }
+            var rect = c.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            points.push({ x: x, y: y });
+            draw();
+        });
+
+        // Tastatur:
+        // Enter     = lukk polygonet (samme som "Ferdig")
+        // Backspace = angre siste punkt
+        document.addEventListener("keydown", function (e) {
+            if (e.key == "Enter") {
+                finish();
+            } else if (e.key == "Backspace" && !isClosed) {
+                points.pop();
+                draw();
+            }
+        });
+
+        function newPolygon() {
+            points = [];
+            isClosed = false;
+            draw();
+        }
+
+        function finish() {
+            if (points.length >= 3) {
+                isClosed = true;
+                draw();
+            } else {
+                alert("Et polygon må ha minst 3 punkter.");
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            if (points.length == 0) {
+                return;
+            }
+
+            ctx.strokeStyle = "black";
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (var i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            if (isClosed) {
+                ctx.closePath();
+            }
+            ctx.stroke();
+
+            if (!isClosed) {
+                ctx.fillStyle = "black";
+                for (var j = 0; j < points.length; j++) {
+                    ctx.beginPath();
+                    ctx.arc(points[j].x, points[j].y, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+        }
+
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+    <canvas id="myCanvas" width="400" height="400" style="border:1px solid #d3d3d3;"></canvas>
+
+    <script>
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        var kvadratStorrelse = 200;
+        var kvadratX = (c.width - kvadratStorrelse) / 2;
+        var kvadratY = (c.height - kvadratStorrelse) / 2;
+
+        var midtX = c.width / 2;
+        var midtY = c.height / 2;
+
+        var punktX = midtX;
+        var punktY = midtY;
+
+        var radius = 5;
+        var gripAvstand = 15;
+        var dragger = false;
+
+        function draw() {
+            ctx.clearRect(0, 0, c.width, c.height);
+
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            ctx.fillStyle = "red";
+            ctx.fillRect(kvadratX, kvadratY, kvadratStorrelse, kvadratStorrelse);
+
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            ctx.moveTo(kvadratX, midtY);
+            ctx.lineTo(punktX, punktY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(punktX, punktY);
+            ctx.lineTo(kvadratX + kvadratStorrelse, midtY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(punktX, punktY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = "black";
+            ctx.stroke();
+        }
+
+        function avstandTilPunkt(x, y) {
+            var dx = x - punktX;
+            var dy = y - punktY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        c.addEventListener("mousedown", function (e) {
+            var currx = e.clientX - c.offsetLeft;
+            var curry = e.clientY - c.offsetTop;
+
+            if (avstandTilPunkt(currx, curry) < gripAvstand) {
+                dragger = true;
+                c.style.cursor = "pointer";
+            }
+        }, false);
+
+        c.addEventListener("mousemove", function (e) {
+            var currx = e.clientX - c.offsetLeft;
+            var curry = e.clientY - c.offsetTop;
+
+            if (dragger) {
+                punktX = currx;
+                punktY = curry;
+                draw();
+            } else {
+                if (avstandTilPunkt(currx, curry) < gripAvstand) {
+                    c.style.cursor = "pointer";
+                } else {
+                    c.style.cursor = "auto";
+                }
+            }
+        }, false);
+
+        c.addEventListener("mouseup", function (e) {
+            dragger = false;
+            punktX = midtX;
+            punktY = midtY;
+            draw();
+        }, false);
+
+        draw();
+    </script>
+
+</body>
+</html>

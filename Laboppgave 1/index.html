@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+
+    <script>
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, c.width, c.height);
+
+        var x = [0, 200, 410, 600];
+        var y = [190, 275, 155, 205];
+
+        ctx.beginPath();
+        ctx.moveTo(x[0], y[0]);
+        ctx.lineTo(x[1], y[1]);
+        ctx.lineTo(x[2], y[2]);
+        ctx.lineTo(x[3], y[3]);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(210, 145, 25, 0, 2 * Math.PI);
+        ctx.fillStyle = "yellow";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(110, 275);
+        ctx.lineTo(140, 225);
+        ctx.lineTo(520, 225);
+        ctx.lineTo(550, 275);
+        ctx.closePath();
+        ctx.fillStyle = "black";
+        ctx.fill();
+
+        ctx.fillStyle = "green";
+        ctx.fillRect(150, 275, 360, 265);
+        ctx.strokeRect(150, 275, 360, 265);
+
+        ctx.fillStyle = "yellow";
+        ctx.fillRect(195, 340, 70, 70);
+        ctx.strokeRect(195, 340, 70, 70);
+
+        ctx.fillRect(410, 340, 70, 70);
+        ctx.strokeRect(410, 340, 70, 70);
+
+        ctx.fillStyle = "pink";
+        ctx.fillRect(295, 460, 70, 80);
+        ctx.strokeRect(295, 460, 70, 80);
+
+        ctx.fillStyle = "black";
+        ctx.font = "16px Arial";
+        ctx.fillText("Lukas Sopp Håheim", 20, 575);
+    </script>
+
+</body>
+</html>

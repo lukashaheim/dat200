@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboppgave 8</title>
+</head>
+<body>
+<p>Venstreklikk: legg til kontrollpunkt | Høyreklikk på punkt: slett</p>
+<button id="clearBtn">Tøm</button>
+<br><br>
+<canvas id="canvas" width="900" height="600" style="border: 1px solid black;"></canvas>
+
+<script>
+const controlPoints = [];
+const canvas = document.getElementById("canvas");
+const g = canvas.getContext("2d");
+const n = 20;
+const RADIUS = 5;
+
+function drawBSpline(i, n, g) {
+  const curvePoints = new Array(n + 1);
+  const delta = 1.0 / n;
+
+  for (let j = 0; j <= n; j++) {
+    const t = j * delta;
+
+    const b0 = (1 - t) * (1 - t) * (1 - t) / 6.0;
+    const b1 = (3 * t * t * t - 6 * t * t + 4) / 6.0;
+    const b2 = (-3 * t * t * t + 3 * t * t + 3 * t + 1) / 6.0;
+    const b3 = t * t * t / 6.0;
+
+    curvePoints[j] = {
+      x: controlPoints[i - 3].x * b0
+       + controlPoints[i - 2].x * b1
+       + controlPoints[i - 1].x * b2
+       + controlPoints[i].x     * b3,
+      y: controlPoints[i - 3].y * b0
+       + controlPoints[i - 2].y * b1
+       + controlPoints[i - 1].y * b2
+       + controlPoints[i].y     * b3
+    };
+  }
+
+  g.strokeStyle = "black";
+  g.beginPath();
+  for (let j = 0; j < n; j++) {
+    g.moveTo(curvePoints[j].x, curvePoints[j].y);
+    g.lineTo(curvePoints[j + 1].x, curvePoints[j + 1].y);
+  }
+  g.stroke();
+}
+
+function redraw() {
+  g.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 3; i < controlPoints.length; i++) {
+    drawBSpline(i, n, g);
+  }
+
+  g.font = "12px sans-serif";
+  controlPoints.forEach((p, k) => {
+    g.fillStyle = "red";
+    g.beginPath();
+    g.arc(p.x, p.y, RADIUS, 0, 2 * Math.PI);
+    g.fill();
+    g.fillStyle = "black";
+    g.fillText("P" + k, p.x + 8, p.y - 8);
+  });
+}
+
+function mousePos(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+canvas.addEventListener("click", e => {
+  controlPoints.push(mousePos(e));
+  redraw();
+});
+
+canvas.addEventListener("contextmenu", e => {
+  e.preventDefault();
+  const pos = mousePos(e);
+  for (let k = controlPoints.length - 1; k >= 0; k--) {
+    const dx = controlPoints[k].x - pos.x;
+    const dy = controlPoints[k].y - pos.y;
+    if (dx * dx + dy * dy <= (RADIUS + 3) * (RADIUS + 3)) {
+      controlPoints.splice(k, 1);
+      redraw();
+      return;
+    }
+  }
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  controlPoints.length = 0;
+  redraw();
+});
+</script>
+</body>
+</html>
